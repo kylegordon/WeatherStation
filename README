@@ -1,0 +1,27 @@
+Using OpenWRT on Bifferboard. 
+Bifferboard is permanently attached to weather station display
+
+WIRELESS
+========
+Using Ralink RT2870 USB device
+
+opkg update
+opkg install kmod-rt2800-usb
+
+TIME
+====
+Bifferboard has no RTC, so an external time source is vital
+
+opkg update
+opkg install luci-app-ntpc
+
+NETWORKING
+==========
+opkg update
+opkg install luci-app-openvpn
+
+GETTING DATA
+============
+Install fowsr on the Bifferboard, and periodically upload to server for processing
+opkg update
+opkg install fowsr
