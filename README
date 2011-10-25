@@ -1,11 +1,28 @@
 Using OpenWRT on Bifferboard. 
 Bifferboard is permanently attached to weather station display
 
+BIFFBOOT CONFIG
+===============
+Configuration values:
+bootsource:  on-board flash
+console:     enabled
+nic:         enabled
+boottype:    Linux 2.6 parameter block
+loadaddress: 0x00400000
+cmndline:    rootfstype=squashfs,jffs2 console=uart,io,0x3f8 init=/etc/preinit ubi.mtd=rootfs <-- remove the console parameter if using homebuilt OpenWRT
+kernelmax:   0x0010
+
+BASIC SETUP
+===========
+If using the standard Biff image from http://sites.google.com/site/bifferboard/Home/factory-firmware then note the contents of http://sites.google.com/site/bifferboard/Home/howto/install-opkg-files
+Edit /etc/opkg.conf and change the URL in the first line to http://downloads.openwrt.org/kamikaze/8.09/rdc/packages/
+
 WIRELESS
 ========
 Using Ralink RT2870 USB device
 
 opkg update
+opkg install usbutils
 opkg install kmod-rt2800-usb
 
 TIME
