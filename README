@@ -1,6 +1,10 @@
 Using OpenWRT on Bifferboard. 
 Bifferboard is permanently attached to weather station display
 
+opkg update
+opkg install bash vim
+
+=======
 BIFFBOOT CONFIG
 ===============
 Configuration values:
