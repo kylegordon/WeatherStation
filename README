@@ -2,7 +2,7 @@ Using OpenWRT on Bifferboard to find out what the weather is like.
 
 Why can't I just look out the window?
 
-So here's the script. I have a Bifferboard, some USB wireless network devices, a W-8681 weather station, and a desire to capture the data remotely.
+So here's the script. I have a Bifferboard, some USB wireless network devices, a W-8681 weather station, and a desire to capture the data remotely. I also have a VPN in which to transport it over, and some kind parents with a permanent network connection and wireless.
 
 BIFFBOOT CONFIG
 ===============
@@ -34,8 +34,7 @@ WIRELESS
 ========
 
 For this task I was using a Ralink RT2870 USB device. This is normally supported by the kmod-rt2800-usb module.
- In my case, as I was building the firmware from scratch, I enabled it during the build process. It's hidden in the Kernel Modules > Wireless subsection. Enable it as a kernel builtin, as making it a module just confuses m
-atters.
+ In my case, as I was building the firmware from scratch, I enabled it during the build process. It's hidden in the Kernel Modules > Wireless subsection. Enable it as a kernel builtin, as making it a module just confuses matters.
 
 opkg update
 opkg install wpad-mini # Handles WPA2
@@ -98,10 +97,45 @@ I have a VPN network in which to keep in touch with all my remote devices, be th
 opkg update
 opkg install openvpn
 
-Setting up OpenVPN is left as an excercise for the reader. You should just need a client configuration, 2 certificates, and keyfile.
+Installing the packages sounded like an easy task, just opkg install openvpn and off you go, but sadly due to an ABI mismatch, the tun module oopses the kernel when the first packet arrives. Further info can be found at https://dev.openwrt.org/ticket/7511 The workaround for this was just to enable kmod-tun and openvpn in the menuconfig of the OpenWRT tree I was already building, and install those two ipk files that are generated.
+
+Now that it's installed, setting up OpenVPN is left as an excercise for the reader. You should just need a client configuration, 2 certificates, and keyfile.
+
+Once ready, enable it and start it
+
+/etc/init.d/openvpn enable
+/etc/init.d/openvpn start
+
+EXTERNAL STORAGE
+================
+
+I had a spare 1GB memory stick that wasn't really much use elsewhere. The hub also had 2 spare USB ports. Simple to use, just install the ext4 kernel module
+
+opkg update
+opkg install kmod-fs-ext4
+mount /dev/sda1 /mnt
 
 GETTING DATA
 ============
 Install fowsr on the Bifferboard, and periodically upload to server for processing
 opkg update
 opkg install fowsr
+
+Generate a SSH kay pair in order to provide passwordless uploads
+mkdir ~/.ssh/
+dropbearkey -t rsa -f ~/.ssh/id_dsa
+Copy and paste the public key output into id_dsa.pub for safe keeping
+
+Stick the contents of id_dsa.pub into the authorized_keys2 file of the destination user on the destination machine
+
+Grab the data with fowsr, and then upload it to the main server for processing.
+fowsr -p
+cp /var/pywws.log /mnt/
+rsync -avug /var/pywws.log bagpuss@lodge.glasgownet.com:weather_data/
+
+BACKING IT UP
+=============
+
+It might contain the tiniest of filesystems, at only 8MB, but there's still a fair bit of work invested there. I may also have documented most of it here, but I'd rather not go through the entire process again!
+
+rdiff-backup - more to come
