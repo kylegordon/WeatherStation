@@ -1,10 +1,9 @@
-Using OpenWRT on Bifferboard. 
-Bifferboard is permanently attached to weather station display
+Using OpenWRT on Bifferboard to find out what the weather is like.
 
-opkg update
-opkg install bash vim
+Why can't I just look out the window?
 
-=======
+So here's the script. I have a Bifferboard, some USB wireless network devices, a W-8681 weather station, and a desire to capture the data remotely.
+
 BIFFBOOT CONFIG
 ===============
 Configuration values:
@@ -16,30 +15,90 @@ loadaddress: 0x00400000
 cmndline:    rootfstype=squashfs,jffs2 console=uart,io,0x3f8 init=/etc/preinit ubi.mtd=rootfs <-- remove the console parameter if using homebuilt OpenWRT
 kernelmax:   0x0010
 
+kmod-carl9170 for Netgear stick
+kmod-rt2800-usb for Ralink
+
 BASIC SETUP
 ===========
 If using the standard Biff image from http://sites.google.com/site/bifferboard/Home/factory-firmware then note the contents of http://sites.google.com/site/bifferboard/Home/howto/install-opkg-files
-Edit /etc/opkg.conf and change the URL in the first line to http://downloads.openwrt.org/kamikaze/8.09/rdc/packages/
+
+opkg update
+opkg install bash vim # Retain some sanity
+
+Use 'passwd' to set a root password. This will disable telnet and automatically enable the dropbear SSH daemon.
+
+uci set system.cfg1.hostname=weather1
+uci commit
 
 WIRELESS
 ========
-Using Ralink RT2870 USB device
+
+For this task I was using a Ralink RT2870 USB device. This is normally supported by the kmod-rt2800-usb module.
+ In my case, as I was building the firmware from scratch, I enabled it during the build process. It's hidden in the Kernel Modules > Wireless subsection. Enable it as a kernel builtin, as making it a module just confuses m
+atters.
 
 opkg update
-opkg install usbutils
-opkg install kmod-rt2800-usb
+opkg install wpad-mini # Handles WPA2
+
+Execute the following command to generate a default config
+wifi detect > /etc/config/wireless
+
+Edit /etc/config/wireless to contain the following
+config wifi-device  radio0
+        option type     mac80211
+        option channel  11
+        option macaddr  00:a1:b0:f2:14:da
+        option hwmode   11ng
+        option htmode   HT20
+        list ht_capab   GF
+        list ht_capab   SHORT-GI-20
+        list ht_capab   SHORT-GI-40
+        list ht_capab   RX-STBC1
+                                          
+config wifi-iface        
+        option device   radio0
+        option network  lan   
+        option mode     sta   
+        option ssid     Glasgownet       
+        option encryption psk2 
+        option key      always32
+
+Execute 'wifi' to bring up the network
+
+uci show wireless should also show the same settings.
+
+AUTOMATIC WIRELESS
+==================
+I couldn't be bothered finding out why wireless wasn't automatically coming up at bootup, but I suspect it's due to the USB devices being detected long after the network scripts are run.
+
+To work around this, I used the @reboot function of cron. Use of cron was already on the cards, so it's no extra work.
+
+touch /etc/crontabs/root
+ln -sf /etc/crontabs/root /etc/crontab # For convenience
+Execute 'crontab -e' and place the following line in it
+
+@reboot sleep 60 ; /sbin/wifi
+
+I tested it without the sleep 60, and it seemed to work. However, I'd rather be slow and confident rather than  focus on speed. Better to let the system settle down for a minute before trying to bring up the interface.
+
+Reboot to test, and be happy.
 
 TIME
 ====
-Bifferboard has no RTC, so an external time source is vital
+Bifferboard has no RTC, so an external time source is vital. However, as the network isn't up immediately, the inbuilt rdate app fails to find anything. Easiest route around that is to install ntpclient and leave it to poll in the background. Once installed it will automatically use the uci configuration data for timeservers.
+
+uci show timeserver
+opkg update
+opkg install ntpclient
+
+VPN NETWORKING
+==============
+I have a VPN network in which to keep in touch with all my remote devices, be they phones, cars, weather stations, etc. As this weather station is going to be installed in a remote location behind a NAT router, by hooking it into the VPN I can access it remotely without having to worry about firewall tunnelling and other nastiness.
 
 opkg update
-opkg install luci-app-ntpc
+opkg install openvpn
 
-NETWORKING
-==========
-opkg update
-opkg install luci-app-openvpn
+Setting up OpenVPN is left as an excercise for the reader. You should just need a client configuration, 2 certificates, and keyfile.
 
 GETTING DATA
 ============
