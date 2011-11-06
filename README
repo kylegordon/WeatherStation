@@ -2,7 +2,9 @@ Using OpenWRT on Bifferboard to find out what the weather is like.
 
 Why can't I just look out the window?
 
-So here's the script. I have a Bifferboard, some USB wireless network devices, a W-8681 weather station, and a desire to capture the data remotely. I also have a VPN in which to transport it over, and some kind parents with a permanent network connection and wireless.
+So here's the script. I have a Bifferboard, some USB wireless network devices, a W-8681 weather station, and a desire to capture the data remotely. I also have a VPN in which to transport it over, and some kind parents with a permanent network connection and wireless connectivity.
+
+The Bifferboard has a somewhat unique bootloader, and the settings used are below. The firmware that's been flashed on is the default from https://groups.google.com/forum/#!msg/bifferboard/HFjg0vd4iuI/WLYWcKnPAUYJ
 
 BIFFBOOT CONFIG
 ===============
@@ -14,9 +16,6 @@ boottype:    Linux 2.6 parameter block
 loadaddress: 0x00400000
 cmndline:    rootfstype=squashfs,jffs2 console=uart,io,0x3f8 init=/etc/preinit ubi.mtd=rootfs <-- remove the console parameter if using homebuilt OpenWRT
 kernelmax:   0x0010
-
-kmod-carl9170 for Netgear stick
-kmod-rt2800-usb for Ralink
 
 BASIC SETUP
 ===========
@@ -60,7 +59,7 @@ config wifi-iface
         option mode     sta   
         option ssid     Glasgownet       
         option encryption psk2 
-        option key      always32
+        option key      <hidden>
 
 Execute 'wifi' to bring up the network
 
@@ -137,4 +136,4 @@ BACKING IT UP
 
 It might contain the tiniest of filesystems, at only 8MB, but there's still a fair bit of work invested there. I may also have documented most of it here, but I'd rather not go through the entire process again!
 
-rdiff-backup - more to come
+For this I use rdiff-backup, which is documented elsewhere on the internet
