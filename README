@@ -99,11 +99,10 @@ opkg install openvpn
 
 Installing the packages sounded like an easy task, just opkg install openvpn and off you go, but sadly due to an ABI mismatch, the tun module oopses the kernel when the first packet arrives. Further info can be found at https://dev.openwrt.org/ticket/7511 The workaround for this was just to enable kmod-tun and openvpn in the menuconfig of the OpenWRT tree I was already building, and install those two ipk files that are generated.
 
-Now that it's installed, setting up OpenVPN is left as an excercise for the reader. You should just need a client configuration, 2 certificates, and keyfile.
+Now that it's installed, setting up OpenVPN is left as an excercise for the reader. You should just need a client configuration, 2 certificates, and keyfile. It may be worth noting that OpenWRT stores a lot of the OpenVPN settings in /etc/config/openvpn. I used my standard 'client.conf' that I use everwhere else, and modified /etc/config/openvpn to include /etc/openvpn/client.conf, and also enabled the instance so that it would be started automatically on boot. Both of those modifications are in the top 10 lines of the config file. If you're setting up OpenVPN from scratch on the device, you really should just edit /etc/config/openvpn, or preferably use the uci set commands to configure it and then uci commit it at the end.
 
 Once ready, enable it and start it
 
-/etc/init.d/openvpn enable
 /etc/init.d/openvpn start
 
 EXTERNAL STORAGE
