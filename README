@@ -126,8 +126,10 @@ Copy and paste the public key output into id_dsa.pub for safe keeping
 
 Stick the contents of id_dsa.pub into the authorized_keys2 file of the destination user on the destination machine
 
-Grab the data with fowsr, and then upload it to the main server for processing.
-fowsr -p
+Use crontab to grab the data with fowsr
+*/5 * * * * /usr/bin/fowsr -p   
+
+Upload it to the main server for processing.
 cp /var/pywws.log /mnt/
 rsync -avug /var/pywws.log bagpuss@lodge.glasgownet.com:weather_data/
 
